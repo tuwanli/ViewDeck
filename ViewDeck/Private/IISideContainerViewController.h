@@ -1,8 +1,8 @@
 //
-//  PushedViewController.h
-//  ViewDeckExample
+//  IISideContainerViewController.h
+//  IIViewDeck
 //
-//  Copyright (C) 2011-2016, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,21 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PushedViewController : UIViewController
+#import "IIEnvironment.h"
+
+
+NS_ASSUME_NONNULL_BEGIN
+
+@class IIViewDeckController;
+@interface IISideContainerViewController : UIViewController
+
+@property (nonatomic, readonly) UIViewController *innerViewController;
+@property (nonatomic, weak, readonly) IIViewDeckController *viewDeckController;
+
+@property (nonatomic, readonly) IIViewDeckSide side;
+
+- (instancetype)initWithViewController:(UIViewController *)viewController viewDeckController:(IIViewDeckController *)viewDeckController NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

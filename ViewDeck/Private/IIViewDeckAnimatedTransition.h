@@ -1,8 +1,8 @@
 //
-//  IISideController.h
+//  IIViewDeckAnimatedTransition.h
 //  IIViewDeck
 //
-//  Copyright (C) 2011-2015, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -23,27 +23,21 @@
 //  SOFTWARE.
 //
 
-#import "IIWrapController.h"
+#import <UIKit/UIKit.h>
 
-@interface IISideController : IIWrapController
-
-@property (nonatomic, assign) CGFloat constrainedSize;
-
-+ (IISideController*)autoConstrainedSideControllerWithViewController:(UIViewController*)controller;
-+ (IISideController*)sideControllerWithViewController:(UIViewController*)controller constrained:(CGFloat)constrainedSize;
-
-- (id)initWithViewController:(UIViewController*)controller constrained:(CGFloat)constrainedSize;
-
-- (void)shrinkSide;
-- (void)shrinkSideAnimated:(BOOL)animated;
-
-@end
+#import "IIEnvironment.h"
 
 
-// category on UIViewController to provide access to the sideController in the
-// contained viewcontrollers, a la UINavigationController.
-@interface UIViewController (IISideController)
+NS_ASSUME_NONNULL_BEGIN
 
-@property(nonatomic,readonly,retain) IISideController *sideController;
+
+@interface IIViewDeckAnimatedTransition : NSObject <UIViewControllerAnimatedTransitioning>
+
++ (instancetype)new NS_UNAVAILABLE;
+- (instancetype)init NS_UNAVAILABLE;
+
+- (instancetype)initWithTypeAppearing:(BOOL)appearing NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

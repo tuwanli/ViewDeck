@@ -1,8 +1,8 @@
 //
-//  WrappedController.h
+//  IIViewDeckTransitioningDelegate.h
 //  IIViewDeck
 //
-//  Copyright (C) 2011-2015, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -10,7 +10,7 @@
 //  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 //  of the Software, and to permit persons to whom the Software is furnished to do
 //  so, subject to the following conditions:
-// 
+//
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
 //
@@ -25,23 +25,19 @@
 
 #import <UIKit/UIKit.h>
 
-@interface IIWrapController : UIViewController
+NS_ASSUME_NONNULL_BEGIN
 
-@property (nonatomic, readonly, retain) UIViewController* wrappedController;
-@property (nonatomic, copy) void(^onViewDidLoad)(IIWrapController* controller);
-@property (nonatomic, copy) void(^onViewWillAppear)(IIWrapController* controller, BOOL animated);
-@property (nonatomic, copy) void(^onViewDidAppear)(IIWrapController* controller, BOOL animated);
-@property (nonatomic, copy) void(^onViewWillDisappear)(IIWrapController* controller, BOOL animated);
-@property (nonatomic, copy) void(^onViewDidDisappear)(IIWrapController* controller, BOOL animated);
+@class IIViewDeckController;
+@interface IIViewDeckTransitioningDelegate : NSObject <UIViewControllerTransitioningDelegate>
 
-- (id)initWithViewController:(UIViewController*)controller;
++ (instancetype)new NS_UNAVAILABLE;
+- (instancetype)init NS_UNAVAILABLE;
 
-@end
+@property (nonatomic, readonly) UIScreenEdgePanGestureRecognizer *leftEdgeGestureRecognizer;
+@property (nonatomic, readonly) UIScreenEdgePanGestureRecognizer *rightEdgeGestureRecognizer;
 
-// category on WrappedController to provide access to the viewDeckController in the 
-// contained viewcontrollers, a la UINavigationController.
-@interface UIViewController (WrapControllerItem) 
-
-@property(nonatomic,readonly,assign) IIWrapController *wrapController; 
+- (instancetype)initWithViewDeckController:(IIViewDeckController *)viewDeckController NS_DESIGNATED_INITIALIZER;
 
 @end
+
+NS_ASSUME_NONNULL_END

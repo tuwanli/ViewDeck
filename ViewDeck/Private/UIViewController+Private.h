@@ -1,8 +1,8 @@
 //
-//  PushedViewController.h
-//  ViewDeckExample
+//  UIViewController+Private.h
+//  IIViewDeck
 //
-//  Copyright (C) 2011-2016, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,20 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PushedViewController : UIViewController
+@interface UIViewController (II_Private)
+
+/// Wraps the view controller container methods and exchanges the old view controller with the new view controller.
+///
+/// @param oldController  The controller to be removed.
+/// @param newController  The controller to be added.
+/// @param viewTransition A block that manages the view transition of the two controllers if necessary.
+- (void)ii_exchangeViewController:(UIViewController *)oldController withViewController:(UIViewController *)newController viewTransition:(void(^)(void))viewTransition;
+
+/// Wraps the exchange of the views of two view controllers including the appearance calls.
+///
+/// @param oldController The controller whoes view needs to be removed.
+/// @param newController The controller whoes view needs to be added.
+/// @param containerView The container view in which this replacement should take place.
+- (void)ii_exchangeViewFromController:(UIViewController *)oldController toController:(UIViewController *)newController inContainerView:(UIView *)containerView;
 
 @end

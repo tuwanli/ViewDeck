@@ -1,8 +1,8 @@
 //
-//  PushedViewController.h
-//  ViewDeckExample
+//  IIViewDeckPresentationController.h
+//  IIViewDeck
 //
-//  Copyright (C) 2011-2016, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PushedViewController : UIViewController
+@class IIViewDeckController;
+@interface IIViewDeckPresentationController : UIPresentationController
+
+@property (nonatomic) UIPanGestureRecognizer *panGestureRecognizer;
 
 @end

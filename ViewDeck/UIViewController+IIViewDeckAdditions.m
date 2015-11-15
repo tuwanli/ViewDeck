@@ -1,8 +1,8 @@
 //
-//  PushedViewController.h
-//  ViewDeckExample
+//  UIViewController+IIViewDeckController.m
+//  IIViewDeck
 //
-//  Copyright (C) 2011-2016, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,28 @@
 //  SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
+#import "UIViewController+IIViewDeckAdditions.h"
 
-@interface PushedViewController : UIViewController
+#import "IIViewDeckController.h"
+#import "IISideContainerViewController.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+@implementation UIViewController (IIViewDeckAdditions)
+
+- (nullable IIViewDeckController *)viewDeckController {
+    __kindof UIViewController *parent = self;
+    while (parent) {
+        if ([parent isKindOfClass:[IIViewDeckController class]]) {
+            return parent;
+        } else if ([parent isKindOfClass:[IISideContainerViewController class]]) {
+            return parent.viewDeckController;
+        }
+        parent = parent.parentViewController;
+    }
+    return nil;
+}
 
 @end
+
+NS_ASSUME_NONNULL_END

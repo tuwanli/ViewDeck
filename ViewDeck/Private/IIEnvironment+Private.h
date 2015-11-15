@@ -1,8 +1,8 @@
 //
-//  PushedViewController.h
-//  ViewDeckExample
+//  IIEnvironment+Private.h
+//  IIViewDeck
 //
-//  Copyright (C) 2011-2016, ViewDeck
+//  Copyright (C) 2016, ViewDeck
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of
 //  this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,8 @@
 //  SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
+#import "IIEnvironment.h"
 
-@interface PushedViewController : UIViewController
+#define IILimit(__min__, __value__, __max__) MAX(__min__, MIN(__value__, __max__))
 
-@end
+#define IILimitFraction(__value__) IILimit(0.0, __value__, 1.0)

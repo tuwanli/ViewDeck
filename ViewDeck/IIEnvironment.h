@@ -1,5 +1,5 @@
 //
-//  ViewDeck.h
+//  IIEnvironment.h
 //  IIViewDeck
 //
 //  Copyright (C) 2011-2016, ViewDeck
@@ -23,6 +23,26 @@
 //  SOFTWARE.
 //
 
-#import "IIEnvironment.h"
-#import "IIViewDeckController.h"
-#import "UIViewController+IIViewDeckAdditions.h"
+#import <Foundation/Foundation.h>
+
+typedef NS_ENUM(NSInteger, IIViewDeckSide) {
+    IIViewDeckSideNone = 0, /// This identifies no side, basically meaning that neither the left nor the right side is relevant.
+    IIViewDeckSideLeft, /// This identifies the left view controller of an IIViewDeckController
+    IIViewDeckSideRight, /// This identifies the right view controller of an IIViewDeckController
+
+    IIViewDeckSideUnknown = IIViewDeckSideNone, /// This has the same logic as IIViewDeckSideNone but means that the side is yet unknown.
+
+    IIViewDeckLeftSide __deprecated_enum_msg("Use IIViewDeckSideLeft instead.") = IIViewDeckSideLeft,
+    IIViewDeckRightSide __deprecated_enum_msg("Use IIViewDeckSideRight instead.") = IIViewDeckSideRight,
+};
+
+/**
+ Checks if the passed in side is describing a side view controller of an `IIViewDeckController`.
+
+ @param side The side you want to check.
+
+ @return `YES` if side is either of type `IIViewDeckSideLeft` or `IIViewDeckSideRight`.
+ */
+static inline BOOL IIViewDeckSideIsValid(IIViewDeckSide side) {
+    return (side == IIViewDeckSideLeft || side == IIViewDeckSideRight);
+}
