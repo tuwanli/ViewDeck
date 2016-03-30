@@ -543,12 +543,21 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     return II_CGRectShrink(self.referenceBounds, 0, [self relativeStatusBarHeight] + (self.navigationController.navigationBarHidden ? 0 : self.navigationController.navigationBar.frame.size.height));
 }
 
-- (CGRect)sideViewBounds {
+- (CGRect)sideViewFrameForSide:(IIViewDeckSide)side {
+    CGRect frame;
     BOOL greaterThanOrEqual7 = [@"7.0" compare:UIDevice.currentDevice.systemVersion options:NSNumericSearch] != NSOrderedDescending;
-    if (self.navigationControllerBehavior == IIViewDeckNavigationControllerContained || greaterThanOrEqual7)
-        return self.referenceBounds;
-    
-    return II_CGRectOffsetTopAndShrink(self.referenceBounds, [self relativeStatusBarHeight]);
+    if (self.navigationControllerBehavior == IIViewDeckNavigationControllerContained || greaterThanOrEqual7) {
+        frame = self.referenceBounds;
+    } else {
+        frame = II_CGRectOffsetTopAndShrink(self.referenceBounds, [self relativeStatusBarHeight]);
+    }
+    if (side == IIViewDeckLeftSide) {
+        frame.size.width -= self.leftSize;
+    } else if (side == IIViewDeckRightSide) {
+        frame.origin.x += self.rightSize;
+        frame.size.width -= self.rightSize;
+    }
+    return frame;
 }
 
 - (CGFloat)limitOffset:(CGFloat)offset forOrientation:(IIViewDeckOffsetOrientation)orientation {
@@ -985,7 +994,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
             self.centerController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             self.centerController.view.frame = self.centerView.bounds;
             [self doForControllers:^(UIViewController* controller, IIViewDeckSide side) {
-                controller.view.frame = self.sideViewBounds;
+                controller.view.frame = [self sideViewFrameForSide:side];
                 controller.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             }];
             
