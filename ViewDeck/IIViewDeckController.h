@@ -34,8 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 #define II_DEPRECATED_DROP __deprecated_msg("This method is deprecated and will go away in 3.0.0 without a replacement. If you think it is still needed, please file an issue at https://github.com/ViewDeck/ViewDeck/issues/new")
 
-@protocol IIViewDeckControllerDelegate;
-
 typedef NS_ENUM(NSInteger, IIViewDeckPanningMode) {
     IIViewDeckNoPanning,              /// no panning allowed
     IIViewDeckFullViewPanning,        /// the default: touch anywhere in the center view to drag the center view around
@@ -73,6 +71,52 @@ typedef NS_ENUM(NSInteger, IIViewDeckDelegateMode) {
 
 
 FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
+
+
+@class IIViewDeckController;
+
+/**
+ The delegate of a `IIViewDeckController` is used to inform the delegate of changes
+ the view deck controller is undergoing, like opening or closing sides.
+ */
+@protocol IIViewDeckControllerDelegate <NSObject>
+@optional
+
+/// @name Open and Close Sides
+
+/**
+ Tells the delegate that the specified side will open.
+
+ @param viewDeckController The view deck controller informing the delegate.
+ @param side               The side that will open. Either `IIViewDeckSideLeft` or `IIViewDeckSideRight`.
+ */
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willOpenSide:(IIViewDeckSide)side;
+
+/**
+ Tells the delegate that the specified side did open.
+
+ @param viewDeckController The view deck controller informing the delegate.
+ @param side               The side that did open. Either `IIViewDeckSideLeft` or `IIViewDeckSideRight`.
+ */
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didOpenSide:(IIViewDeckSide)side;
+
+/**
+ Tells the delegate that the specified side will close.
+
+ @param viewDeckController The view deck controller informing the delegate.
+ @param side               The side that will close. Either `IIViewDeckSideLeft` or `IIViewDeckSideRight`.
+ */
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willCloseSide:(IIViewDeckSide)side;
+
+/**
+ Tells the delegate that the specified side did close.
+
+ @param viewDeckController The view deck controller informing the delegate.
+ @param side               The side that did close. Either `IIViewDeckSideLeft` or `IIViewDeckSideRight`.
+ */
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didCloseSide:(IIViewDeckSide)side;
+
+@end
 
 
 @interface IIViewDeckController : UIViewController
@@ -148,6 +192,10 @@ FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
  @return A newly initialized instance of `IIViewDeckController`.
  */
 - (instancetype)initWithCenterViewController:(UIViewController*)centerController leftViewController:(nullable UIViewController*)leftController rightViewController:(nullable UIViewController*)rightController NS_DESIGNATED_INITIALIZER;
+
+/// @name Managing the Delegate
+
+@property (nonatomic, weak) id<IIViewDeckControllerDelegate> delegate;
 
 /// @name Maintaining the Content View Controllers
 

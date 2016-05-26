@@ -23,11 +23,12 @@
 //  SOFTWARE.
 //
 
-#import "IIViewDeckController.h"
+#import "IIViewDeckController+Private.h"
 
 #import "IISideContainerViewController.h"
 #import "IIViewDeckTransitioningDelegate.h"
 #import "UIViewController+Private.h"
+#import "IIDelegateProxy.h"
 
 
 NS_ASSUME_NONNULL_BEGIN
@@ -58,6 +59,8 @@ NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side) {
     } _flags;
 }
 
+@property (nonatomic) id<IIViewDeckControllerDelegate> delegateProxy;
+
 @property (nonatomic) id<UIViewControllerTransitioningDelegate> defaultTransitioningDelegate;
 
 @property (nonatomic, nullable) IISideContainerViewController *leftContainerViewController;
@@ -70,6 +73,8 @@ NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side) {
 
 @synthesize leftContainerViewController = _leftContainerViewController;
 @synthesize rightContainerViewController = _rightContainerViewController;
+
+II_DELEGATE_PROXY(IIViewDeckControllerDelegate);
 
 #pragma mark - Object Initialization
 
@@ -202,11 +207,10 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
 }
 
 - (void)openSide:(IIViewDeckSide)side animated:(BOOL)animated {
-    [self openSide:side animated:animated completion:NULL];
+    [self openSide:side animated:animated notify:NO completion:NULL];
 }
 
-// could be made public if needed, but for now: Keep the interface as small as possible.
-- (void)openSide:(IIViewDeckSide)side animated:(BOOL)animated completion:(nullable void(^)(void))completion {
+- (void)openSide:(IIViewDeckSide)side animated:(BOOL)animated notify:(BOOL)notify completion:(nullable void(^)(void))completion {
     if (side == _openSide) {
         return;
     }
@@ -217,10 +221,27 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
 
     IIViewDeckSide oldSide = _openSide;
 
+    if (notify) {
+        if (oldSide == IIViewDeckSideNone) {
+            [self.delegateProxy viewDeckController:self willOpenSide:side];
+        } else {
+            [self.delegateProxy viewDeckController:self willCloseSide:oldSide];
+        }
+    }
+
     void(^complete)() = ^{
         [self updateOpenSide];
         NSAssert(IIIsAllowedTransition(oldSide, self->_openSide), @"A transition has taken place that is unexpected and unsupported. We are probably in an invalid state right now.");
         if (completion) { completion(); }
+
+        if (notify) {
+            if (oldSide == IIViewDeckSideNone) {
+                [self.delegateProxy viewDeckController:self didOpenSide:side];
+            } else {
+                [self.delegateProxy viewDeckController:self didCloseSide:oldSide];
+            }
+        }
+        
         self->_flags.isInSideChange = NO;
     };
     if (side != IIViewDeckSideNone) {
@@ -244,12 +265,11 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
 }
 
 - (void)closeSide:(BOOL)animated {
-    [self closeSide:animated completion:NULL];
+    [self closeSide:animated notify:NO completion:NULL];
 }
 
-// could be made public if needed, but for now: Keep the interface as small as possible.
-- (void)closeSide:(BOOL)animated completion:(nullable void(^)(void))completion {
-    [self openSide:IIViewDeckSideNone animated:animated completion:completion];
+- (void)closeSide:(BOOL)animated notify:(BOOL)notify completion:(nullable void(^)(void))completion {
+    [self openSide:IIViewDeckSideNone animated:animated notify:notify completion:completion];
 }
 
 - (void)updateOpenSide {

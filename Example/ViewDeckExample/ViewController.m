@@ -123,12 +123,12 @@ static CGFloat const LedgeSizeFactor = 88.0;
 
 - (IBAction)previewBounceLeftView:(id)sender {
     IIViewDeckController *viewDeckController = self.viewDeckController;
-    [viewDeckController previewBounceView:IIViewDeckSideLeft];
+//    [viewDeckController previewBounceView:IIViewDeckSideLeft];
 }
 
 - (IBAction)previewBounceRightView:(id)sender {
     IIViewDeckController *viewDeckController = self.viewDeckController;
-    [viewDeckController previewBounceView:IIViewDeckSideRight];
+//    [viewDeckController previewBounceView:IIViewDeckSideRight];
 }
 
 - (void)showCam:(id)sender {

@@ -115,7 +115,7 @@
 
 - (void)pushOverCenter:(id)sender {
     PushedViewController* controller = [[PushedViewController alloc] initWithNibName:@"PushedViewController" bundle:nil];
-    [self.viewDeckController rightViewPushViewControllerOverCenterController:controller];
+//    [self.viewDeckController rightViewPushViewControllerOverCenterController:controller];
 }
 
 - (IBAction)moveToLeft:(id)sender {

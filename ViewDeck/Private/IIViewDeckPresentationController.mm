@@ -26,7 +26,7 @@
 #import "IIViewDeckPresentationController.h"
 
 #import "IIEnvironment.h"
-#import "IIViewDeckController.h"
+#import "IIViewDeckController+Private.h"
 #import "IISideContainerViewController.h"
 
 @interface IIViewDeckPresentationController ()
@@ -126,7 +126,7 @@
 #pragma mark - Presentation Controls
 
 - (IBAction)dismissPresentedViewController:(id)sender {
-    [self.viewDeckController closeSide:YES];
+    [self.viewDeckController closeSide:YES notify:YES completion:NULL];
 }
 
 @end

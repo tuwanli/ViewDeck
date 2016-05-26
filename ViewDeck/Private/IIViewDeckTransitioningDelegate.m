@@ -27,7 +27,7 @@
 
 #import "IIEnvironment+Private.h"
 #import "IIViewDeckAnimatedTransition.h"
-#import "IIViewDeckController.h"
+#import "IIViewDeckController+Private.h"
 #import "IIViewDeckPresentationController.h"
 #import "IISideContainerViewController.h"
 
@@ -153,7 +153,7 @@ NS_ASSUME_NONNULL_BEGIN
         case UIGestureRecognizerStateBegan: {
             NSParameterAssert(!self.currentInteractiveTransition);
             self->_flags.isInteractiveTransition = YES;
-            [self.viewDeckController openSide:side animated:YES];
+            [self.viewDeckController openSide:side animated:YES notify:YES completion:NULL];
             break;
         }
         case UIGestureRecognizerStateChanged: {
@@ -206,7 +206,7 @@ NS_ASSUME_NONNULL_BEGIN
         case UIGestureRecognizerStateBegan: {
             NSParameterAssert(!self.currentInteractiveTransition);
             self->_flags.isInteractiveTransition = YES;
-            [self.viewDeckController closeSide:YES];
+            [self.viewDeckController closeSide:YES notify:YES completion:NULL];
             break;
         }
         case UIGestureRecognizerStateChanged: {
