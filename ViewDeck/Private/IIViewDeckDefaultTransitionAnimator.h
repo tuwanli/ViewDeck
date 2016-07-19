@@ -1,5 +1,5 @@
 //
-//  IIViewDeckAnimatedTransition.h
+//  IIViewDeckDefaultTransitionAnimator.h
 //  IIViewDeck
 //
 //  Copyright (C) 2016, ViewDeck
@@ -23,21 +23,9 @@
 //  SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
-
-#import "IIEnvironment.h"
+#import "IIViewDeckTransitioning.h"
 
 
-NS_ASSUME_NONNULL_BEGIN
-
-
-@interface IIViewDeckAnimatedTransition : NSObject <UIViewControllerAnimatedTransitioning>
-
-+ (instancetype)new NS_UNAVAILABLE;
-- (instancetype)init NS_UNAVAILABLE;
-
-- (instancetype)initWithTypeAppearing:(BOOL)appearing NS_DESIGNATED_INITIALIZER;
+@interface IIViewDeckDefaultTransitionAnimator : NSObject <IIViewDeckTransitionAnimator>
 
 @end
-
-NS_ASSUME_NONNULL_END

@@ -26,7 +26,6 @@
 #import "UIViewController+IIViewDeckAdditions.h"
 
 #import "IIViewDeckController.h"
-#import "IISideContainerViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -37,8 +36,6 @@ NS_ASSUME_NONNULL_BEGIN
     while (parent) {
         if ([parent isKindOfClass:[IIViewDeckController class]]) {
             return parent;
-        } else if ([parent isKindOfClass:[IISideContainerViewController class]]) {
-            return parent.viewDeckController;
         }
         parent = parent.parentViewController;
     }

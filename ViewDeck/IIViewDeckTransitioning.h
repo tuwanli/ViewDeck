@@ -1,5 +1,5 @@
 //
-//  IIViewDeckTransitioningDelegate.h
+//  IIViewDeckTransitioning.h
 //  IIViewDeck
 //
 //  Copyright (C) 2016, ViewDeck
@@ -23,21 +23,32 @@
 //  SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
 
-@class IIViewDeckController;
-@interface IIViewDeckTransitioningDelegate : NSObject <UIViewControllerTransitioningDelegate>
+@protocol IIViewDeckTransitionContext <NSObject>
 
-+ (instancetype)new NS_UNAVAILABLE;
-- (instancetype)init NS_UNAVAILABLE;
+@property (nonatomic, readonly, getter=isInteractive) BOOL interactive;
+@property (nonatomic, readonly, getter=isCancelled) BOOL cancelled;
 
-@property (nonatomic, readonly) UIScreenEdgePanGestureRecognizer *leftEdgeGestureRecognizer;
-@property (nonatomic, readonly) UIScreenEdgePanGestureRecognizer *rightEdgeGestureRecognizer;
+@property (nonatomic, readonly) UIView *centerView;
+@property (nonatomic, readonly) CGRect initialCenterFrame;
+@property (nonatomic, readonly) CGRect finalCenterFrame;
 
-- (instancetype)initWithViewDeckController:(IIViewDeckController *)viewDeckController NS_DESIGNATED_INITIALIZER;
+@property (nonatomic, readonly) UIView *sideView;
+@property (nonatomic, readonly) CGRect initialSideFrame;
+@property (nonatomic, readonly) CGRect finalSideFrame;
+
+- (void)completeTransition;
 
 @end
 
-NS_ASSUME_NONNULL_END
+
+@protocol IIViewDeckTransitionAnimator <NSObject>
+
+@required
+- (void)prepareForTransition:(id<IIViewDeckTransitionContext>)context;
+- (void)updateInteractiveTransition:(id<IIViewDeckTransitionContext>)context fractionCompleted:(double)fractionCompleted;
+- (void)animateTransition:(id<IIViewDeckTransitionContext>)context velocity:(CGPoint)velocity;
+
+@end

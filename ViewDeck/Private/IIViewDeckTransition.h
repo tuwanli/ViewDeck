@@ -1,5 +1,5 @@
 //
-//  IISideContainerViewController.h
+//  IIViewDeckTransition.h
 //  IIViewDeck
 //
 //  Copyright (C) 2016, ViewDeck
@@ -23,23 +23,24 @@
 //  SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
+#import "IIViewDeckTransitioning.h"
 
 #import "IIEnvironment.h"
 
 
-NS_ASSUME_NONNULL_BEGIN
-
 @class IIViewDeckController;
-@interface IISideContainerViewController : UIViewController
+@interface IIViewDeckTransition : NSObject <IIViewDeckTransitionContext>
 
-@property (nonatomic, readonly) UIViewController *innerViewController;
-@property (nonatomic, weak, readonly) IIViewDeckController *viewDeckController;
+- (instancetype)initWithViewDeckController:(IIViewDeckController *)viewDeckController from:(IIViewDeckSide)fromSide to:(IIViewDeckSide)toSide;
 
-@property (nonatomic, readonly) IIViewDeckSide side;
+@property (nonatomic, copy) void(^completionHandler)(BOOL cancelled);
 
-- (instancetype)initWithViewController:(UIViewController *)viewController viewDeckController:(IIViewDeckController *)viewDeckController NS_DESIGNATED_INITIALIZER;
+/// @name Managing Interactive Transitions
+- (void)beginInteractiveTransition:(UIGestureRecognizer *)recognizer;
+- (void)updateInteractiveTransition:(UIGestureRecognizer *)recognizer;
+- (void)endInteractiveTransition:(UIGestureRecognizer *)recognizer;
+
+/// @name Managing Animated Transitions
+- (void)performTransition:(BOOL)animated;
 
 @end
-
-NS_ASSUME_NONNULL_END

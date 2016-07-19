@@ -25,10 +25,11 @@
 
 #import "IIViewDeckController+Private.h"
 
-#import "IISideContainerViewController.h"
-#import "IIViewDeckTransitioningDelegate.h"
+#import "IIViewDeckLayoutSupport.h"
 #import "UIViewController+Private.h"
 #import "IIDelegateProxy.h"
+#import "IIViewDeckDefaultTransitionAnimator.h"
+#import "IIViewDeckTransition.h"
 
 
 NS_ASSUME_NONNULL_BEGIN
@@ -61,18 +62,14 @@ NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side) {
 
 @property (nonatomic) id<IIViewDeckControllerDelegate> delegateProxy;
 
-@property (nonatomic) id<UIViewControllerTransitioningDelegate> defaultTransitioningDelegate;
-
-@property (nonatomic, nullable) IISideContainerViewController *leftContainerViewController;
-@property (nonatomic, nullable) IISideContainerViewController *rightContainerViewController;
+@property (nonatomic) IIViewDeckLayoutSupport *layoutSupport;
+@property (nonatomic) IIViewDeckTransition *currentTransition;
+@property (nonatomic) UIGestureRecognizer *currentInteractiveGesture;
 
 @end
 
 
 @implementation IIViewDeckController
-
-@synthesize leftContainerViewController = _leftContainerViewController;
-@synthesize rightContainerViewController = _rightContainerViewController;
 
 II_DELEGATE_PROXY(IIViewDeckControllerDelegate);
 
@@ -95,18 +92,14 @@ II_DELEGATE_PROXY(IIViewDeckControllerDelegate);
     if (self) {
         NSParameterAssert(centerViewController);
 
-        _defaultTransitioningDelegate = [[IIViewDeckTransitioningDelegate alloc] initWithViewDeckController:self];
-
         // Trigger the setter as they keep track of the view controller hierarchy!
         self.centerViewController = centerViewController;
         self.leftViewController = leftViewController;
         self.rightViewController = rightViewController;
+
+        self.layoutSupport = [[IIViewDeckLayoutSupport alloc] initWithViewDeckController:self];
     }
     return self;
-}
-
-- (BOOL)definesPresentationContext {
-    return YES;
 }
 
 
@@ -121,10 +114,9 @@ II_DELEGATE_PROXY(IIViewDeckControllerDelegate);
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    IIViewDeckTransitioningDelegate *transitioningDelegate = self.defaultTransitioningDelegate;
-    UIView *view = self.view;
-    [view addGestureRecognizer:transitioningDelegate.leftEdgeGestureRecognizer];
-    [view addGestureRecognizer:transitioningDelegate.rightEdgeGestureRecognizer];
+//    UIView *view = self.view;
+//    [view addGestureRecognizer:transitioningDelegate.leftEdgeGestureRecognizer];
+//    [view addGestureRecognizer:transitioningDelegate.rightEdgeGestureRecognizer];
 
     [self ii_exchangeViewFromController:nil toController:self.centerViewController inContainerView:self.view];
 }
@@ -154,49 +146,31 @@ II_DELEGATE_PROXY(IIViewDeckControllerDelegate);
     if (_leftViewController && _leftViewController == leftViewController) {
         return;
     }
-    NSAssert(_leftViewController == nil || _leftViewController.presentingViewController == nil, @"You can not exchange a side view controller while it is being presented.");
+    NSAssert(_leftViewController == nil || self.openSide != IIViewDeckSideLeft, @"You can not exchange a side view controller while it is being presented.");
+    UIViewController *oldViewController = _leftViewController;
     _leftViewController = leftViewController;
 
-    IISideContainerViewController *container;
-    if (leftViewController) {
-        container = [[IISideContainerViewController alloc] initWithViewController:leftViewController viewDeckController:self];
-        container.transitioningDelegate = self.defaultTransitioningDelegate;
-    }
-    self.leftContainerViewController = container;
+    [self ii_exchangeViewController:oldViewController withViewController:leftViewController viewTransition:NULL];
 
     [self updateSideGestureRecognizer];
-}
-
-- (void)setLeftContainerViewController:(nullable IISideContainerViewController *)leftContainerViewController {
-    NSAssert(_leftContainerViewController.presentingViewController == nil, @"You can not exchange a side view controller while it is being presented.");
-    _leftContainerViewController = leftContainerViewController;
 }
 
 - (void)setRightViewController:(nullable UIViewController *)rightViewController {
     if (_rightViewController && _rightViewController == rightViewController) {
         return;
     }
-    NSAssert(_rightViewController == nil || _rightViewController.presentingViewController == nil, @"You can not exchange a side view controller while it is being presented.");
+    NSAssert(_rightViewController == nil || self.openSide != IIViewDeckSideRight, @"You can not exchange a side view controller while it is being presented.");
+    UIViewController *oldViewController = _rightViewController;
     _rightViewController = rightViewController;
 
-    IISideContainerViewController *container;
-    if (rightViewController) {
-        container = [[IISideContainerViewController alloc] initWithViewController:rightViewController viewDeckController:self];
-        container.transitioningDelegate = self.defaultTransitioningDelegate;
-    }
-    self.rightContainerViewController = container;
+    [self ii_exchangeViewController:oldViewController withViewController:rightViewController viewTransition:NULL];
 
     [self updateSideGestureRecognizer];
 }
 
-- (void)setRightContainerViewController:(nullable IISideContainerViewController *)rightContainerViewController {
-    NSAssert(_rightContainerViewController.presentingViewController == nil, @"You can not exchange a side view controller while it is being presented.");
-    _rightContainerViewController = rightContainerViewController;
-}
 
 
-
-#pragma mark - Side State
+#pragma mark - Managing Transitions
 
 static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide toSide) {
     return (fromSide == toSide) || (IIViewDeckSideIsValid(fromSide) && !IIViewDeckSideIsValid(toSide)) || (!IIViewDeckSideIsValid(fromSide) && IIViewDeckSideIsValid(toSide));
@@ -210,7 +184,7 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
     [self openSide:side animated:animated notify:NO completion:NULL];
 }
 
-- (void)openSide:(IIViewDeckSide)side animated:(BOOL)animated notify:(BOOL)notify completion:(nullable void(^)(void))completion {
+- (void)openSide:(IIViewDeckSide)side animated:(BOOL)animated notify:(BOOL)notify completion:(nullable void(^)(BOOL cancelled))completion {
     if (side == _openSide) {
         return;
     }
@@ -229,16 +203,29 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
         }
     }
 
-    void(^complete)() = ^{
-        [self updateOpenSide];
-        NSAssert(IIIsAllowedTransition(oldSide, self->_openSide), @"A transition has taken place that is unexpected and unsupported. We are probably in an invalid state right now.");
-        if (completion) { completion(); }
+    void(^innerComplete)(BOOL) = ^(BOOL cancelled){
+        self.currentTransition = nil;
+        if (cancelled) {
+            self->_openSide = oldSide;
+        } else {
+            self->_openSide = side;
+            NSAssert(IIIsAllowedTransition(oldSide, self->_openSide), @"A transition has taken place that is unexpected and unsupported. We are probably in an invalid state right now.");
+        }
+        if (completion) { completion(cancelled); }
 
         if (notify) {
-            if (oldSide == IIViewDeckSideNone) {
-                [self.delegateProxy viewDeckController:self didOpenSide:side];
+            if (cancelled) {
+                if (oldSide == IIViewDeckSideNone) {
+                    [self.delegateProxy viewDeckController:self didCloseSide:side];
+                } else {
+                    [self.delegateProxy viewDeckController:self didOpenSide:oldSide];
+                }
             } else {
-                [self.delegateProxy viewDeckController:self didCloseSide:oldSide];
+                if (oldSide == IIViewDeckSideNone) {
+                    [self.delegateProxy viewDeckController:self didOpenSide:side];
+                } else {
+                    [self.delegateProxy viewDeckController:self didCloseSide:oldSide];
+                }
             }
         }
         
@@ -251,16 +238,14 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
         // first moment on, therefore we change the state immediately.
         _openSide = side;
     }
-    switch (side) {
-        case IIViewDeckSideNone:
-            [self dismissViewControllerAnimated:animated completion:complete];
-            break;
-        case IIViewDeckSideLeft:
-            [self presentViewController:self.leftContainerViewController animated:animated completion:complete];
-            break;
-        case IIViewDeckSideRight:
-            [self presentViewController:self.rightContainerViewController animated:animated completion:complete];
-            break;
+
+    if (self.currentInteractiveGesture) {
+        // trigger interactive transition
+    } else {
+        IIViewDeckTransition *transition = [[IIViewDeckTransition alloc] initWithViewDeckController:self from:oldSide to:side];
+        self.currentTransition = transition;
+        transition.completionHandler = innerComplete;
+        [transition performTransition:animated];
     }
 }
 
@@ -272,17 +257,43 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
     [self openSide:IIViewDeckSideNone animated:animated notify:notify completion:completion];
 }
 
-- (void)updateOpenSide {
-    UIViewController *presentedViewController = self.presentedViewController;
-    if (!presentedViewController) {
-        _openSide = IIViewDeckSideNone;
-    } else if (presentedViewController == self.leftContainerViewController) {
-        _openSide = IIViewDeckSideLeft;
-    } else if (presentedViewController == self.rightContainerViewController) {
-        _openSide = IIViewDeckSideRight;
-    } else {
-        NSAssert(NO, @"View deck was unable to detect if it is presenting a side right now. This probably indicates a broken view conctoller hierarchy or an unsupported presentaiton. presentedViewController: %@", presentedViewController);
+
+
+#pragma mark - Transitioning
+
+- (void)interactiveTransitionRecognized:(UIGestureRecognizer *)recognizer {
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan: {
+            NSParameterAssert(self.currentInteractiveGesture);
+            self.currentInteractiveGesture = recognizer;
+            // TODO: Detect transition side
+            IIViewDeckSide side = IIViewDeckSideNone;
+            [self openSide:side animated:YES notify:YES completion:^{
+                self.currentInteractiveGesture = nil;
+            }];
+        } break;
+        case UIGestureRecognizerStateChanged: {
+            [self.currentTransition updateInteractiveTransition:recognizer];
+        } break;
+        case UIGestureRecognizerStateCancelled: {
+            [self.currentTransition endInteractiveTransition:recognizer];
+        } break;
+        case UIGestureRecognizerStateEnded: {
+            [self.currentTransition endInteractiveTransition:recognizer];
+        } break;
+        case UIGestureRecognizerStateFailed:
+        case UIGestureRecognizerStatePossible:
+            break;
     }
+
+}
+
+
+
+#pragma mark - Customizing Transitions
+
+- (id<IIViewDeckTransitionAnimator>)animatorForTransitionWithContext:(id<IIViewDeckTransitionContext>)context {
+    return [IIViewDeckDefaultTransitionAnimator new];
 }
 
 
@@ -290,9 +301,9 @@ static inline BOOL IIIsAllowedTransition(IIViewDeckSide fromSide, IIViewDeckSide
 #pragma mark - Interactive State Management
 
 - (void)updateSideGestureRecognizer {
-    IIViewDeckTransitioningDelegate *transitioningDelegate = self.defaultTransitioningDelegate;
-    transitioningDelegate.leftEdgeGestureRecognizer.enabled = (self.leftViewController != nil);
-    transitioningDelegate.rightEdgeGestureRecognizer.enabled = (self.rightViewController != nil);
+//    IIViewDeckTransitioningDelegate *transitioningDelegate = self.defaultTransitioningDelegate;
+//    transitioningDelegate.leftEdgeGestureRecognizer.enabled = (self.leftViewController != nil);
+//    transitioningDelegate.rightEdgeGestureRecognizer.enabled = (self.rightViewController != nil);
 }
 
 @end

@@ -119,7 +119,9 @@ FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
 @end
 
 
+@protocol IIViewDeckTransitionAnimator, IIViewDeckTransitionContext;
 @interface IIViewDeckController : UIViewController
+
 
 /// @name Initializing a View Deck Controller
 
@@ -193,9 +195,11 @@ FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
  */
 - (instancetype)initWithCenterViewController:(UIViewController*)centerController leftViewController:(nullable UIViewController*)leftController rightViewController:(nullable UIViewController*)rightController NS_DESIGNATED_INITIALIZER;
 
+
 /// @name Managing the Delegate
 
 @property (nonatomic, weak) id<IIViewDeckControllerDelegate> delegate;
+
 
 /// @name Maintaining the Content View Controllers
 
@@ -223,7 +227,8 @@ FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
  */
 @property (nonatomic, nullable) UIViewController* rightViewController;
 
-/// @name Managing open and close Transitions
+
+/// @name Managing Transitions
 
 /**
  The side of the view deck controller that is currently open or `IIViewDeckSideNone`
@@ -261,6 +266,11 @@ FOUNDATION_EXPORT NSString* NSStringFromIIViewDeckSide(IIViewDeckSide side);
  @param animated `YES` if you want to animate the transition, `NO` otherwise.
  */
 - (void)closeSide:(BOOL)animated;
+
+
+/// @name Customizing Transitions
+
+- (id<IIViewDeckTransitionAnimator>)animatorForTransitionWithContext:(id<IIViewDeckTransitionContext>)context;
 
 
 /*
